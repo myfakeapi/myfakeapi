@@ -1,3 +1,5 @@
 .idea/*
 env/*
+.tox/*
 db.sqlite3
+.coverage
