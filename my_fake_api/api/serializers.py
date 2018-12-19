@@ -11,7 +11,7 @@ class FakeAPIHandlerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class FakeAPIRequestLogSerializer(serializers.ModelSerializer):
+class APIRequestSerializer(serializers.ModelSerializer):
     """
     LogItem serializer
     """
