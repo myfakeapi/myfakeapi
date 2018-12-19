@@ -147,12 +147,12 @@ class APIHandler(models.Model):
     def __str__(self):
         return self.request_path
 
-    def log(self, request):
+    def log(self):
         """
         Create log entry
         """
         obj = APIRequest(
-            request=self,
+            api_handler=self,
 
             request_path=self.request_path,
             request_method=self.request_method,
@@ -170,7 +170,7 @@ class APIRequest(models.Model):
     Logged request details
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    request = models.ForeignKey("my_fake_api.APIHandler", on_delete=models.CASCADE)
+    api_handler = models.ForeignKey("my_fake_api.APIHandler", on_delete=models.CASCADE)
 
     request_path = models.CharField(max_length=3000)
     request_method = models.CharField(choices=HTTP_METHODS, max_length=10, default=DEFAULT_HTTP_METHOD)
