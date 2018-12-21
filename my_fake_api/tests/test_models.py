@@ -4,12 +4,26 @@ from my_fake_api.tests import factories
 from my_fake_api import models
 
 
+class APITestCase(TestCase):
+    """
+    Testing `my_fake_api.models.API`
+    """
+    def setUp(self):
+        self.api = factories.APIFactory()
+
+    def test_str(self):
+        """ Object string representation should include `title`"""
+        title = get_random_string()
+        self.api.title = title
+        self.assertIn(title, str(self.api))
+
+
 class APIHandlerTestCase(TestCase):
     """
     Testing `my_fake_api.models.APIHandlers`
     """
     def setUp(self):
-        self.handler = factories.APIHandlerFactory(user_id=5)
+        self.handler = factories.APIHandlerFactory()
 
     def test_str(self):
         """ Object string representation should include `request_path`"""
@@ -28,7 +42,7 @@ class APIRequestTestCase(TestCase):
     Testing `my_fake_api.models.APIHandlers`
     """
     def setUp(self):
-        self.handler = factories.APIHandlerFactory(user_id=5)
+        self.handler = factories.APIHandlerFactory()
         self.request = factories.APIRequestFactory(api_handler=self.handler)
 
     def test_str(self):

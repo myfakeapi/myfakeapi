@@ -126,14 +126,29 @@ CONTENT_TYPE_LIST = (
 )
 
 
+class API(models.Model):
+    """
+    API handler set
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(blank=True, null=True, max_length=100)
+    public = models.BooleanField(default=False)
+    users = models.ManyToManyField(get_user_model())
+
+    def __str__(self):
+        """
+        Object representation as string
+        :return:
+        """
+        return self.title
+
+
 class APIHandler(models.Model):
     """
     Fake API handler
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-
+    api = models.ForeignKey("my_fake_api.API", on_delete=models.CASCADE)
     mock_type = models.CharField(choices=MOCK_TYPES, max_length=10, default=DEFAULT_MOCK_TYPE)
 
     request_path = models.CharField(max_length=3000)
@@ -145,7 +160,16 @@ class APIHandler(models.Model):
     response_status_code = models.PositiveSmallIntegerField(choices=HTTP_CODES, default=DEFAULT_HTTP_CODE)
 
     def __str__(self):
+        """
+        Object representation as string
+        """
         return self.request_path
+
+    class Meta(object):
+        """
+        Model meta settings
+        """
+        unique_together = ("request_path", "api")
 
     def log(self):
         """
