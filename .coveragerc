@@ -1,2 +1,2 @@
 [run]
-omit = *migrations*,env/*,.tox/*
+omit = *migrations*,env/*,.tox/*,*/tests/*

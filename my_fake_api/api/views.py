@@ -7,9 +7,25 @@ from my_fake_api import models
 from my_fake_api.api import serializers
 
 
+class APIViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewsSet for `my_fake_api.models.API`
+    """
+    model = models.API
+    serializer_class = serializers.APISerializer
+
+
+class APIHandlerViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewsSet for `my_fake_api.models.APIHandler`
+    """
+    model = models.APIHandler
+    serializer_class = serializers.APIHandlerSerializer
+
+
 class APIRequestViewSet(viewsets.ModelViewSet):
     """
-    Get all user visible handler request log
+    ModelViewsSet for `my_fake_api.models.APIRequest`
     """
     model = models.APIRequest
     serializer_class = serializers.APIRequestSerializer
@@ -22,4 +38,4 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             return self.model.objects.none()
 
         handlers = self.request.user.apihandler_set.all()
-        return self.model.objects.filter(api_handlers__in=handlers)
+        return self.model.objects.filter(api_handler__in=handlers)
