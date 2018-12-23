@@ -26,7 +26,7 @@ class APIViewSet(_BaseViewSet):
 
     def get_queryset(self):
         """
-        Provide access only to user visible API.
+        Provide access only to user visible API objects.
         """
         return self.model.objects.filter(users__in=[self.request.user])
 
@@ -47,10 +47,9 @@ class APIHandlerViewSet(_BaseViewSet):
 
     def get_queryset(self):
         """
-        Provide access only to user visible API handlers.
+        Provide access only to handlers only from user visible API objects.
         """
-        api_list = self.request.user.api_set.all()
-        return self.model.objects.filter(api__in=api_list)
+        return self.model.objects.filter(api__in=self.request.user.api_set.all())
 
 
 class APIRequestViewSet(_BaseViewSet):

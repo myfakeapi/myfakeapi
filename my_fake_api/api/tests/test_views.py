@@ -4,12 +4,7 @@ from my_fake_api import models
 from django.utils.crypto import get_random_string
 
 
-class APIViewSetTestCase(APITestCase):
-    """
-    Testing `my_fake_api.api.views.APIViewSet`
-    """
-
-    api_url = "/api/apis/"
+class _APIViewTestBase(object):
 
     def setUp(self):
         self.client = APIClient()
@@ -30,6 +25,13 @@ class APIViewSetTestCase(APITestCase):
     def _login(self):
         self.client.force_authenticate(user=self.user1)
 
+
+class APIViewSetTestCase(_APIViewTestBase, APITestCase):
+    """
+    Testing `my_fake_api.api.views.APIViewSet`
+    """
+    api_url = "/api/apis/"
+
     def test_non_authenticated_listing(self):
         response = self.client.get(self.api_url)
         self.assertEqual(response.status_code, 403)
@@ -43,7 +45,7 @@ class APIViewSetTestCase(APITestCase):
         self.assertEqual(response_item["id"], str(self.api1.pk))
 
     def test_non_authenticated_creation(self):
-        response = self.client.get(self.api_url, data={
+        response = self.client.post(self.api_url, data={
             "title": get_random_string()
         })
         self.assertEqual(response.status_code, 403)
@@ -104,4 +106,105 @@ class APIViewSetTestCase(APITestCase):
         response = self.client.delete("{}{}/".format(self.api_url, self.api1.pk))
         self.assertEqual(response.status_code, 204)
         remote_obj = models.API.objects.filter(pk=self.api1.pk)
+        self.assertFalse(remote_obj.exists())
+
+
+class APIHandlerViewSetTestCase(_APIViewTestBase, APITestCase):
+    """
+    Testing `my_fake_api.api.views.APIHandlerViewSet`
+    """
+    api_url = "/api/handlers/"
+
+    def setUp(self):
+        super().setUp()
+        self.path1 = "/folder/{}.php".format(get_random_string())
+        self.path2 = "/folder/{}.py".format(get_random_string())
+        self.handler1 = factories.APIHandlerFactory(api=self.api1, request_path=self.path1)
+        self.handler2 = factories.APIHandlerFactory(api=self.api2, request_path=self.path2)
+
+    def test_non_authenticated_listing(self):
+        response = self.client.get(self.api_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_listing(self):
+        self._login()
+        response = self.client.get(self.api_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 1)
+        id_list = [r["id"] for r in response.json()]
+        self.assertIn(str(self.handler1.pk), id_list)
+        self.assertNotIn(str(self.handler2.pk), id_list)
+
+    def test_non_authenticated_creation(self):
+        response = self.client.post(self.api_url, data={
+            "request_path": get_random_string()
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthorized_creation(self):
+        self._login()
+        request_path = get_random_string()
+        response = self.client.post(self.api_url, data={
+            "api": self.api2.pk,
+            "request_path": request_path
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_creation(self):
+        self._login()
+        request_path = get_random_string()
+        response = self.client.post(self.api_url, data={
+            "api": self.api1.pk,
+            "request_path": request_path
+        })
+        self.assertEqual(response.status_code, 201)
+        remote_pk = response.json()["id"]
+        remote_obj = models.APIHandler.objects.filter(pk=remote_pk)
+        self.assertTrue(remote_obj.exists())
+        self.assertEqual(request_path, remote_obj.first().request_path)
+        self.assertIn(self.user1, remote_obj.first().api.users.all())
+
+    def test_non_authenticated_updating(self):
+        response = self.client.patch("{}{}/".format(self.api_url, self.handler1.pk), data={
+            "request_path": get_random_string()
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthorized_updating(self):
+        title = get_random_string()
+        self._login()
+        response = self.client.patch("{}{}/".format(self.api_url, self.handler2.pk), data={
+            "request_path": title
+        })
+        self.assertEqual(response.status_code, 404)
+
+    def test_updating(self):
+        request_path = get_random_string()
+        self._login()
+        response = self.client.patch("{}{}/".format(self.api_url, self.handler1.pk), data={
+            "request_path": request_path
+        })
+        self.assertEqual(response.status_code, 200)
+        remote_pk = response.json()["id"]
+        remote_obj = models.APIHandler.objects.filter(pk=remote_pk)
+        self.assertTrue(remote_obj.exists())
+        self.assertEqual(request_path, remote_obj.first().request_path)
+        self.assertIn(self.user1, remote_obj.first().api.users.all())
+
+    def test_non_authenticated_deletion(self):
+        response = self.client.delete("{}{}/".format(self.api_url, self.handler1.pk))
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthorized_deletion(self):
+        self._login()
+        response = self.client.delete("{}{}/".format(self.api_url, self.handler2.pk))
+        self.assertEqual(response.status_code, 404)
+        remote_obj = models.APIHandler.objects.filter(pk=self.handler1.pk)
+        self.assertTrue(remote_obj.exists())
+
+    def test_deletion(self):
+        self._login()
+        response = self.client.delete("{}{}/".format(self.api_url, self.handler1.pk))
+        self.assertEqual(response.status_code, 204)
+        remote_obj = models.APIHandler.objects.filter(pk=self.handler1.pk)
         self.assertFalse(remote_obj.exists())
