@@ -14,7 +14,7 @@ class APISerializer(serializers.ModelSerializer):
         Serializer meta settings
         """
         model = models.API
-        fields = "__all__"
+        exclude = ["users"]
 
 
 class APIHandlerSerializer(serializers.ModelSerializer):
