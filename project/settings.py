@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "bootstrapform",
+    "channels",
 
     "my_fake_api",
 ]
@@ -74,7 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
+ASGI_APPLICATION = 'project.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
