@@ -34,9 +34,10 @@ class APIHandlerSerializer(serializers.ModelSerializer):
         """
         request = self.context["request"]
         if request.user not in value.users.all():
-            raise serializers.ValidationError("Handler API should be owned by the authenticated user")
+            raise serializers.ValidationError("API should be owned by the authenticated user")
 
         return value
+
 
 class APIRequestSerializer(serializers.ModelSerializer):
     """
@@ -48,3 +49,13 @@ class APIRequestSerializer(serializers.ModelSerializer):
         """
         model = models.APIRequest
         fields = "__all__"
+
+    def validate_api_handler(self, value):
+        """
+        User can create handlers only under api he/she owns.
+        """
+        request = self.context["request"]
+        if request.user not in value.api.users.all():
+            raise serializers.ValidationError("API should be owned by the authenticated user")
+
+        return value
