@@ -59,9 +59,14 @@ class APIRequestViewSet(_BaseViewSet):
     model = models.APIRequest
     serializer_class = serializers.APIRequestSerializer
 
+    def create(self, *args, **kwargs):
+        """
+        Logs should be created only by API requests
+        """
+        return super().list(self, *args, **kwargs)
+
     def get_queryset(self):
         """
         Provide access only to user visible handler logs.
         """
-        api_list = self.request.user.api_set.all()
-        return self.model.objects.filter(api_handler__api__in=api_list)
+        return self.model.objects.filter(api_handler__api__in=self.request.user.api_set.all())
